@@ -15,21 +15,42 @@ concurrency:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 4
+    timeout-minutes: 5
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Check required secrets are configured
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          DESTINATION_CHANNEL_ID: ${{ secrets.DESTINATION_CHANNEL_ID }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          python - <<'PY'
+          import os
+          required = ["BOT_TOKEN", "DESTINATION_CHANNEL_ID", "DATABASE_URL"]
+          missing = [key for key in required if not os.environ.get(key, "").strip()]
+          if missing:
+              print("Missing required repository secrets: " + ", ".join(missing))
+              print("Open Settings > Secrets and variables > Actions to add them.")
+              raise SystemExit(1)
+          print("Required secret names are configured.")
+          PY
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: python -m pip install --upgrade pip && pip install -r requirements.txt
+
+      - name: Check Python syntax
+        run: python -m py_compile bot.py
 
       - name: Process incoming deals
-        run: python bot.py
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           DESTINATION_CHANNEL_ID: ${{ secrets.DESTINATION_CHANNEL_ID }}
@@ -38,3 +59,4 @@ jobs:
           ADMIN_USER_IDS: ${{ secrets.ADMIN_USER_IDS }}
           ALLOWED_SOURCE_CHAT_IDS: ${{ secrets.ALLOWED_SOURCE_CHAT_IDS }}
           RSS_FEEDS: ${{ secrets.RSS_FEEDS }}
+        run: python bot.py

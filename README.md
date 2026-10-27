@@ -35,3 +35,11 @@ Amazon Associates India: https://affiliate-program.amazon.in/
 - Never commit bot tokens, passwords, database credentials, or affiliate credentials to source code.
 - Do not repost content without permission or bypass Telegram access restrictions.
 - This project needs configuration and end-to-end testing before production use. GitHub Actions scheduling is not exact real-time hosting.
+
+
+## GitHub Actions operation
+- The workflow is scheduled every 10 minutes and can also be started manually from the Actions tab.
+- Scheduled runs are best-effort; GitHub may delay them. This is not a continuously running process.
+- The workflow checks that required secret names have values and checks Python syntax before running the bot.
+- The bot checks Telegram webhook status and stops with a clear error if a webhook is configured. It does not delete or change an existing webhook automatically.
+- PostgreSQL is required by the current implementation for persistent update offsets and deduplication.

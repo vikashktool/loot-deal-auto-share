@@ -1,0 +1,40 @@
+name: Loot Deal Auto Share
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: loot-deal-auto-share
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Process incoming deals
+        run: python bot.py
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          DESTINATION_CHANNEL_ID: ${{ secrets.DESTINATION_CHANNEL_ID }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          AMAZON_ASSOCIATES_TAG: ${{ secrets.AMAZON_ASSOCIATES_TAG }}
+          ADMIN_USER_IDS: ${{ secrets.ADMIN_USER_IDS }}
+          ALLOWED_SOURCE_CHAT_IDS: ${{ secrets.ALLOWED_SOURCE_CHAT_IDS }}
+          RSS_FEEDS: ${{ secrets.RSS_FEEDS }}

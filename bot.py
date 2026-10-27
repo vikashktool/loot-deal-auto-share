@@ -230,9 +230,26 @@ def poll_rss():
 
 
 def main():
+    required = {
+        "BOT_TOKEN": BOT_TOKEN,
+        "DESTINATION_CHANNEL_ID": DESTINATION_CHANNEL_ID,
+        "DATABASE_URL": DATABASE_URL,
+    }
+    missing = [name for name, value in required.items() if not value.strip()]
+    if missing:
+        raise RuntimeError("Missing required GitHub Actions secrets: " + ", ".join(missing))
+
     init_db()
-    # Telegram getUpdates and webhooks cannot be active simultaneously.
-    # Inspect existing webhook configuration before enabling polling.
+
+    # Telegram getUpdates polling cannot be used while a webhook is configured.
+    # Stop clearly rather than silently failing or changing the bot's webhook.
+    webhook = api_call("getWebhookInfo")
+    if webhook.get("url"):
+        raise RuntimeError(
+            "A Telegram webhook is configured for this bot. getUpdates polling cannot run "
+            "at the same time. Review the existing deployment before changing webhook settings."
+        )
+
     poll_telegram()
     poll_rss()
 

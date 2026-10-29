@@ -1,45 +1,20 @@
 # Loot Deal Auto Share Bot
 
-Telegram deal-sharing starter designed for scheduled runs with GitHub Actions.
+Multi-customer Telegram deal-forwarding bot. Each customer can connect a destination channel, create tasks from authorized source channels, select a platform filter, set a watermark, and manage tasks.
 
-## Planned features
-- Scheduled processing every 10 minutes (GitHub Actions can delay scheduled runs).
-- Optional RSS feed sources.
-- Repost only Telegram content from source channels you own or have explicit permission to use.
-- Deduplicate published deals with persistent PostgreSQL storage.
-- Add an Amazon Associates tag only to eligible direct Amazon.in product links, after your Associates account is approved.
-- Include affiliate disclosure on posts.
+## Important status
+This project requires Telegram bot credentials and a PostgreSQL database configured as Railway environment variables before it can run. The bot can only read source-channel posts it receives; add the bot to source channels and ensure you have permission to repost content. Amazon tag handling applies only to eligible direct Amazon.in product URLs. Flipkart, Meesho, and EarnKaro need their own approved affiliate links or integrations; ordinary URLs are not magically converted into affiliate links.
 
-## Setup checklist
-1. Add the bot as an administrator to the destination Telegram channel with permission to post.
-2. Only configure source channels where reposting is permitted; the bot cannot read arbitrary channels from usernames alone.
-3. Create a PostgreSQL database and keep its connection string private.
-4. In GitHub, open Settings → Secrets and variables → Actions and add the secrets described below.
-5. If this bot currently uses a Telegram webhook, inspect that configuration before using getUpdates polling; Telegram does not support both at once.
-6. Test in a private channel before posting publicly.
+## Railway variables
+- `BOT_TOKEN`: Telegram bot token (keep private)
+- `DATABASE_URL`: PostgreSQL connection URL (keep private)
 
-## Required repository secrets
-- `BOT_TOKEN`: Telegram bot token
-- `DESTINATION_CHANNEL_ID`: destination channel ID
-- `DATABASE_URL`: PostgreSQL connection string
-- `ADMIN_USER_IDS`: comma-separated Telegram numeric user IDs allowed to submit deals
-- `ALLOWED_SOURCE_CHAT_IDS`: comma-separated numeric IDs for authorized source channels
+## Setup
+1. Create a PostgreSQL database, e.g. Neon, and set `DATABASE_URL` in Railway Variables.
+2. Set `BOT_TOKEN` in Railway Variables.
+3. Set the service start command to `python bot.py` if auto-detection does not do so.
+4. Ensure the Telegram bot has no competing webhook while using long polling.
+5. Add the bot as an admin to destination channels with posting permission and to source channels where permitted.
+6. Test using a private test channel first.
 
-## Optional repository secrets
-- `AMAZON_ASSOCIATES_TAG`: your approved Amazon.in tracking ID. Leave blank until your Associates account is approved.
-- `RSS_FEEDS`: comma-separated RSS feed URLs you are authorized to use.
-
-Amazon Associates India: https://affiliate-program.amazon.in/
-
-## Important
-- Never commit bot tokens, passwords, database credentials, or affiliate credentials to source code.
-- Do not repost content without permission or bypass Telegram access restrictions.
-- This project needs configuration and end-to-end testing before production use. GitHub Actions scheduling is not exact real-time hosting.
-
-
-## GitHub Actions operation
-- The workflow is scheduled every 10 minutes and can also be started manually from the Actions tab.
-- Scheduled runs are best-effort; GitHub may delay them. This is not a continuously running process.
-- The workflow checks that required secret names have values and checks Python syntax before running the bot.
-- The bot checks Telegram webhook status and stops with a clear error if a webhook is configured. It does not delete or change an existing webhook automatically.
-- PostgreSQL is required by the current implementation for persistent update offsets and deduplication.
+Do not put tokens, passwords, or affiliate API secrets in GitHub files or chat.
